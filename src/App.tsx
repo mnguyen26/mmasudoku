@@ -2,25 +2,78 @@ import React from 'react';
 import logo from './logo.svg';
 import './App.css';
 
+const items = [1,2,3];
+const fighters = ["John Elway", "Homer Simpson", "Ralph Sampson"]
+const fighters2 = ["Buddy Guy", "Phillip Fry", "Eren Yeager"]
+
+interface RowLabelsProps {
+  label: string[];
+}
+
+const Cell = () => {
+  return (
+    <div className="cell">
+    </div>
+  )
+}
+
+const Row = () => {
+  return (
+    <div className="row">
+      {items.map((item,index) => (
+        <Cell key={item} />
+      ))}
+    </div>
+  )
+}
+
+const ColLabels = () => {
+  return (
+    <div className="row">
+      {fighters.map((fighter, index) => (
+        <div className="col-label">{fighter}</div>
+      ))}
+    </div>
+  )
+}
+
+const RowLabels = (props: RowLabelsProps) => {
+  return (
+    <>
+      <div style={{display: "flex", flexDirection: "column"}}>
+        {props.label.map((fighter, index) => (
+          <div className="row-label">{fighter}</div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+const Grid = () => {
+  return (
+      <div className="play-area">
+        <ColLabels />
+        <div className="play-area-lower">
+          <RowLabels label={fighters2} />
+          <div className="grid">
+            {fighters2.map((fighter,index) => (
+                <Row key={index} />
+            ))}
+          </div>
+          <RowLabels label={fighters2} />
+        </div>
+      </div>
+  )
+}
+
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    <>
+      <div className="play-container">
+        <Grid />
+      </div>
+    </>
+  )
 }
 
 export default App;
