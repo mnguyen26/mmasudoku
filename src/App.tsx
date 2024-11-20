@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
 
 const items = [1,2,3];
@@ -60,7 +59,7 @@ const Grid = () => {
                 <Row key={index} />
             ))}
           </div>
-          <RowLabels label={fighters2} />
+          <div className="row-label" />
         </div>
       </div>
   )

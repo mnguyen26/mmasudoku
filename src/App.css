@@ -29,8 +29,10 @@
 
 .row-label {
   height: 12em;
+  width: 12em;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .row {
