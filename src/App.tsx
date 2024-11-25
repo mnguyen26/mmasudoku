@@ -2,11 +2,11 @@
 // IMPORTS
 //========================================================================================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-import fighter_fights from '../JSON/fighter_fights.json';
-import fighter_id from '../JSON/fighter_id_name_map.json';
-import fighter_pics from '../JSON/fighter_pics.json';
+import fighter_fights from './JSON/fighter_fights.json';
+import fighter_id from './JSON/fighter_id_name_map.json';
+import fighter_pics from './JSON/fighter_pics.json';
 
 import './App.css';
 
@@ -18,22 +18,83 @@ interface FightData {
   [fighter: string]: string[]; 
 }
 
+interface ColLabelProps {
+  label: string[];
+}
+
 interface RowLabelsProps {
   label: string[];
+}
+
+interface RowProps {
+  cols: string[];
 }
 
 //========================================================================================================
 // FUNCTIONS
 //========================================================================================================
 
-const items = [1,2,3];
-const fighters = ["John Elway", "Homer Simpson", "Ralph Sampson"]
-const fighters2 = ["Buddy Guy", "Phillip Fry", "Eren Yeager"]
+// const items = [1,2,3];
+// const fighters = ["John Elway", "Homer Simpson", "Ralph Sampson"]
+// const fighters2 = ["Buddy Guy", "Phillip Fry", "Eren Yeager"]
 
 const fights: FightData = fighter_fights;
 
 const getRandomElement = (arr: string[]) => {
-  return arr[Math.floor(Math.random()) * arr.length];
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+const getOpps = (fighter: string):string[] => {
+  return fights[fighter];
+}
+
+const getOppsOfOpps = (fights: FightData, fighter: string): string[] => {
+  const oppsOfOppsSet = new Set();
+
+  const opps = getOpps(fighter);
+
+  for (let opp of opps) {
+    let hisOpps = getOpps(opp);
+    hisOpps.forEach(opponent => oppsOfOppsSet.add(opponent));
+  }
+
+  return Array.from(oppsOfOppsSet) as string[];
+}
+
+const orderByNumFights = (fightData: FightData, fighters: string[]): string[] => {
+  const fighterFightCounts: Record<string, number> = {};
+
+  for (const fighter of fighters) {
+    fighterFightCounts[fighter] = fightData[fighter].length;
+  }
+
+  const sortedFighters = Object.keys(fighterFightCounts)
+    .sort((a, b) => fighterFightCounts[b] - fighterFightCounts[a]);
+
+  return sortedFighters; 
+}
+
+const orderByLargestIntersection = (fighter: string, candidates: string[]): string[] => {
+  const intersectCounts: Record<string, number> = {};
+
+  for (const candidate of candidates) {
+    intersectCounts[candidate] = getIntersection(fights[fighter], fights[candidate]).length;
+  }
+
+  const sortedCandidates = Object.keys(intersectCounts)
+    .sort((a, b) => intersectCounts[b] - intersectCounts[a]);
+  
+  return sortedCandidates;
+}
+
+const getIntersection = (list1: string[], list2: string[]): string[] => {
+  const intersection: string[] = []; 
+
+  for (const fighter of list1) {
+    if (list2.includes(fighter)) { intersection.push(fighter) }
+  }
+
+  return intersection;
 }
 
 const hasCommonOpp = (fighter1: string, fighter2: string):boolean => {
@@ -47,10 +108,6 @@ const hasCommonOpp = (fighter1: string, fighter2: string):boolean => {
   return false;
 }
 
-const fightersWhoFought = (opponent: string):string[] => {
-  return fights[opponent];
-}
-
 const didFight = (fighter1: string, fighter2: string) => {
   const opponents = new Set(fights[fighter1]);
 
@@ -59,40 +116,58 @@ const didFight = (fighter1: string, fighter2: string) => {
   return false;
 }
 
-function pickTopFighters(fightData: FightData, fighters: string[]): string[] {
-  const fighterFightCounts: Record<string, number> = {};
+/*
+       3 x 3 grid
 
-  for (const fighter of fighters) {
-    fighterFightCounts[fighter] = fightData[fighter].length;
-  }
+     A     B     C
+  +-----+-----+-----+
+D |     |     |     |
+  +-----+-----+-----+
+E |     |     |     |
+  +-----+-----+-----+
+F |     |     |     |
+  +-----+-----+-----+
+*/
 
-  const sortedFighters = Object.keys(fighterFightCounts)
-    .sort((a, b) => fighterFightCounts[b] - fighterFightCounts[a]);
-
-  return sortedFighters.slice(0, 2); 
-}
-
-const buildGrid = () => {
+const buildGrid = ():[string[], string[]] => {
   const columnFighters: string[] = [];
-  const columnFightersSet = new Set();
   const rowFighters: string[] = [];
-  const rowFightersSet = new Set();
 
   const filteredFights: FightData = Object.fromEntries(
     Object.entries(fights).filter(([fighter, opponents]) => opponents.length >= 10)
   );
 
-  const opponent11 = getRandomElement(Object.keys(filteredFights));
+  const A = getRandomElement(Object.keys(filteredFights));
+  columnFighters.push(A);
 
-  const fighters1 = pickTopFighters(fights, fightersWhoFought(opponent11));
-  columnFighters.push(fighters1[0]);
-  columnFightersSet.add(fighters1[0]);
-  rowFighters.push(fighters1[1]);
-  rowFightersSet.add(fighters1[1]);
+  const aOppsOfOpps = getOppsOfOpps(fights, A);
+  let rowIntersectionCandidates = orderByLargestIntersection(A, aOppsOfOpps);
 
+  const D = rowIntersectionCandidates.find(candidate => !columnFighters.includes(candidate) && !rowFighters.includes(candidate)) || "";
+  rowFighters.push(D);
+  
+  const E = rowIntersectionCandidates.find(candidate => !columnFighters.includes(candidate) && !rowFighters.includes(candidate)) || "";
+  rowFighters.push(E);
 
+  const dOppsOfOpps = getOppsOfOpps(fights, D);
+  const eOppsOfOpps = getOppsOfOpps(fights, E);
 
+  const bCandidates = orderByLargestIntersection(E, getIntersection(dOppsOfOpps, eOppsOfOpps));
+  const B = bCandidates.find(candidate => !columnFighters.includes(candidate) && !rowFighters.includes(candidate)) || "";
+  columnFighters.push(B);
 
+  const bOppsOfOpps = getOppsOfOpps(fights, B);
+  const fCandidates = orderByLargestIntersection(B, getIntersection(aOppsOfOpps, bOppsOfOpps));
+  const F = fCandidates.find(candidate => !columnFighters.includes(candidate) && !rowFighters.includes(candidate)) || "";
+  rowFighters.push(F);
+
+  const fOppsOfOpps = getOppsOfOpps(fights, F);
+  let cCandidates = getIntersection(dOppsOfOpps, getIntersection(eOppsOfOpps, fOppsOfOpps));
+  cCandidates = orderByNumFights(fights, cCandidates);
+  const C = cCandidates.find(candidate => !columnFighters.includes(candidate) && !rowFighters.includes(candidate)) || "";
+  columnFighters.push(C);
+
+  return [columnFighters, rowFighters]
 }
 
 //========================================================================================================
@@ -106,20 +181,20 @@ const Cell = () => {
   )
 }
 
-const Row = () => {
+const Row = (props: RowProps) => {
   return (
     <div className="row">
-      {items.map((item,index) => (
-        <Cell key={item} />
+      {props.cols.map((item,index) => (
+        <Cell />
       ))}
     </div>
   )
 }
 
-const ColLabels = () => {
+const ColLabels = (props: ColLabelProps) => {
   return (
     <div className="row">
-      {fighters.map((fighter, index) => (
+      {props.label.map((fighter, index) => (
         <div className="col-label">{fighter}</div>
       ))}
     </div>
@@ -139,17 +214,24 @@ const RowLabels = (props: RowLabelsProps) => {
 }
 
 const Grid = () => {
-  const [fightersTop, setFightersTop] = useState<string[]>([]);
-  const [fightersSide, setFightersSide] = useState<string[]>([]);
+  const [columnFighters, setColumnFighters] = useState<string[]>([]);
+  const [rowFighters, setRowFighters] = useState<string[]>([]);
+  const [answers, setAnswers] = useState<string[][]>([[]]);
+
+  useEffect(() => {
+    const fighters = buildGrid();
+    setColumnFighters(fighters[0]);
+    setRowFighters(fighters[1]);
+  },[])
 
   return (
       <div className="play-area">
-        <ColLabels />
+        <ColLabels label={columnFighters} />
         <div className="play-area-lower">
-          <RowLabels label={fighters2} />
+          <RowLabels label={rowFighters} />
           <div className="grid">
-            {fighters2.map((fighter,index) => (
-                <Row key={index} />
+            {rowFighters.map((fighter,index) => (
+                <Row cols={columnFighters} key={index} />
             ))}
           </div>
           <div className="row-label" />
