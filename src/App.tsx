@@ -37,12 +37,14 @@ interface RowLabelsProps {
 interface RowProps {
   cols: string[];
   rowNumber: number;
+  answers: string[];
   onCellClick: (rowNumber: number, colNumber: number) => void;
 }
 
 interface CellProps {
   rowNumber: number;
   colNumber: number;
+  answer: string;
   onClick: (rowNumber: number, colNumber: number) => void;
 }
 
@@ -198,6 +200,7 @@ const buildGrid = ():[string[], string[]] => {
 const Cell = (props: CellProps) => {
   return (
     <div className="cell" onClick={() => props.onClick(props.rowNumber, props.colNumber)}>
+      {props.answer}
     </div>
   )
 }
@@ -206,7 +209,7 @@ const Row = (props: RowProps) => {
   return (
     <div className="row">
       {props.cols.map((item,index) => (
-        <Cell rowNumber={props.rowNumber} colNumber={index} onClick={props.onCellClick}/>
+        <Cell rowNumber={props.rowNumber} colNumber={index} onClick={props.onCellClick} answer={props.answers[index]}/>
       ))}
     </div>
   )
@@ -275,6 +278,7 @@ const Grid = () => {
   const [columnFighters, setColumnFighters] = useState<string[]>([]);
   const [rowFighters, setRowFighters] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[][]>([["","",""],["","",""],["","",""]]);
+  const [answersCorrect, setAnswersCorrect] = useState<(boolean | null)[][]>([[null,null,null],[null,null,null],[null,null,null]])
   const [activeCell, setActiveCell] = useState<number[]>([]);
 
   const [opened, { open, close }] = useDisclosure(false);
@@ -283,6 +287,9 @@ const Grid = () => {
     const fighters = buildGrid();
     setColumnFighters(fighters[0]);
     setRowFighters(fighters[1]);
+    setAnswers([["","",""],["","",""],["","",""]]);
+    setAnswersCorrect([[null,null,null],[null,null,null],[null,null,null]]);
+    setActiveCell([]);
   },[])
 
   const handleCellClick = (rowNumber: number, colNumber: number) => {
@@ -291,13 +298,21 @@ const Grid = () => {
   }
 
   const handleFighterSelected = (fighter: string) => {
+    const row = activeCell[0];
+    const col = activeCell[1]; 
+    
     let newAnswers = answers;
-    newAnswers[activeCell[0]][activeCell[1]] = fighter;
+    newAnswers[row][col] = fighter;
     setAnswers(newAnswers);
 
-    close();
+    let newAnswersCorrect: (boolean | null)[][] = [...answersCorrect];
+    newAnswersCorrect[row][col] = (didFight(rowFighters[row], fighter) && didFight(columnFighters[col], fighter));
+    setAnswersCorrect(newAnswersCorrect);
 
     console.log(answers);
+    console.log(answersCorrect);
+
+    close();
   }
 
   return (
@@ -316,7 +331,7 @@ const Grid = () => {
           <RowLabels label={rowFighters} />
           <div className="grid">
             {rowFighters.map((fighter,index) => (
-                <Row cols={columnFighters} key={index} rowNumber={index} onCellClick={handleCellClick} />
+                <Row cols={columnFighters} key={index} rowNumber={index} onCellClick={handleCellClick} answers={answers[index]}/>
             ))}
           </div>
           <div className="row-label" />
