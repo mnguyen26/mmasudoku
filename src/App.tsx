@@ -4,6 +4,10 @@
 
 import { useState, useEffect } from 'react';
 
+import { useDisclosure, useDebouncedCallback } from '@mantine/hooks';
+import { MantineProvider, Modal, Autocomplete } from '@mantine/core';
+import '@mantine/core/styles.css';
+
 import fighter_fights from './JSON/fighter_fights.json';
 import fighter_id from './JSON/fighter_id_name_map.json';
 import fighter_pics from './JSON/fighter_pics.json';
@@ -28,15 +32,24 @@ interface RowLabelsProps {
 
 interface RowProps {
   cols: string[];
+  rowNumber: number;
+  onCellClick: (rowNumber: number, colNumber: number) => void;
+}
+
+interface CellProps {
+  rowNumber: number;
+  colNumber: number;
+  onClick: (rowNumber: number, colNumber: number) => void;
+}
+
+interface FighterSelectModalProps {
+  opened: boolean;
+  onClose: () => void;
 }
 
 //========================================================================================================
 // FUNCTIONS
 //========================================================================================================
-
-// const items = [1,2,3];
-// const fighters = ["John Elway", "Homer Simpson", "Ralph Sampson"]
-// const fighters2 = ["Buddy Guy", "Phillip Fry", "Eren Yeager"]
 
 const fights: FightData = fighter_fights;
 
@@ -174,9 +187,9 @@ const buildGrid = ():[string[], string[]] => {
 // SMALLER COMPONENTS
 //========================================================================================================
 
-const Cell = () => {
+const Cell = (props: CellProps) => {
   return (
-    <div className="cell">
+    <div className="cell" onClick={() => props.onClick(props.rowNumber, props.colNumber)}>
     </div>
   )
 }
@@ -185,7 +198,7 @@ const Row = (props: RowProps) => {
   return (
     <div className="row">
       {props.cols.map((item,index) => (
-        <Cell />
+        <Cell rowNumber={props.rowNumber} colNumber={index} onClick={props.onCellClick}/>
       ))}
     </div>
   )
@@ -213,10 +226,35 @@ const RowLabels = (props: RowLabelsProps) => {
   )
 }
 
+const FighterSelectModal = (props: FighterSelectModalProps) => {
+  const debounceOnChange = useDebouncedCallback((value: string) => {
+    console.log(value);
+  }, 300);
+
+  const fighterIdData = Object.values(fighter_id).map(fighter => fighter);
+
+  return (
+    <>
+    <Modal opened={props.opened} onClose={props.onClose} title="Select Fighter" centered>
+      <Autocomplete
+        label={"Label"}
+        placeholder="Search..."
+        data={fighterIdData}
+        onChange={debounceOnChange}
+        withScrollArea={false}
+        styles={{ dropdown: { maxHeight: 200, overflowY: 'auto', cursor: 'pointer' } }}
+        style={{ marginRight: '1em' }} 
+      />
+    </Modal>
+    </>
+  )
+}
+
 const Grid = () => {
   const [columnFighters, setColumnFighters] = useState<string[]>([]);
   const [rowFighters, setRowFighters] = useState<string[]>([]);
   const [answers, setAnswers] = useState<string[][]>([[]]);
+  const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
     const fighters = buildGrid();
@@ -224,19 +262,28 @@ const Grid = () => {
     setRowFighters(fighters[1]);
   },[])
 
+  const handleCellClick = (rowNumber: number, colNumber: number) => {
+    open();
+  }
+
   return (
+    <>
+    <MantineProvider>
+      <FighterSelectModal opened={opened} onClose={close} />
       <div className="play-area">
         <ColLabels label={columnFighters} />
         <div className="play-area-lower">
           <RowLabels label={rowFighters} />
           <div className="grid">
             {rowFighters.map((fighter,index) => (
-                <Row cols={columnFighters} key={index} />
+                <Row cols={columnFighters} key={index} rowNumber={index} onCellClick={handleCellClick} />
             ))}
           </div>
           <div className="row-label" />
         </div>
       </div>
+    </MantineProvider>
+    </>
   )
 }
 
