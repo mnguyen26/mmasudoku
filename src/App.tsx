@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 
 import { useDisclosure, useDebouncedCallback } from '@mantine/hooks';
-import { MantineProvider, Modal, Autocomplete } from '@mantine/core';
+import { MantineProvider, Modal, Autocomplete, Button } from '@mantine/core';
 import '@mantine/core/styles.css';
 
 import fighter_fights from './JSON/fighter_fights.json';
@@ -20,6 +20,10 @@ import './App.css';
 
 interface FightData {
   [fighter: string]: string[]; 
+}
+
+interface FightIdMap {
+  [key: string]: string;
 }
 
 interface ColLabelProps {
@@ -45,6 +49,9 @@ interface CellProps {
 interface FighterSelectModalProps {
   opened: boolean;
   onClose: () => void;
+  rowFighter: string;
+  colFighter: string;
+  fighterSelected: (fighter: string) => void;
 }
 
 //========================================================================================================
@@ -52,6 +59,7 @@ interface FighterSelectModalProps {
 //========================================================================================================
 
 const fights: FightData = fighter_fights;
+const fightId: FightIdMap = fighter_id;
 
 const getRandomElement = (arr: string[]) => {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -227,24 +235,37 @@ const RowLabels = (props: RowLabelsProps) => {
 }
 
 const FighterSelectModal = (props: FighterSelectModalProps) => {
+  const [selectedFighter, setSelectedFighter] = useState<string>("");
+
   const debounceOnChange = useDebouncedCallback((value: string) => {
-    console.log(value);
+    const key = Object.keys(fightId).find(key => fightId[key] === value);
+    if (key) {
+      setSelectedFighter(key);
+    }
   }, 300);
 
-  const fighterIdData = Object.values(fighter_id).map(fighter => fighter);
+  const handleFighterSelected = () => {
+    props.fighterSelected(selectedFighter);
+  }
+
+  const data = Object.values(fightId);
 
   return (
     <>
-    <Modal opened={props.opened} onClose={props.onClose} title="Select Fighter" centered>
+    <Modal opened={props.opened} onClose={props.onClose} centered>
+      <div>
+        Select a fighter who fought both {fightId[props.rowFighter]} and {fightId[props.colFighter]} in the UFC.
+      </div>
       <Autocomplete
-        label={"Label"}
+        label={""}
         placeholder="Search..."
-        data={fighterIdData}
+        data={data}
         onChange={debounceOnChange}
         withScrollArea={false}
         styles={{ dropdown: { maxHeight: 200, overflowY: 'auto', cursor: 'pointer' } }}
         style={{ marginRight: '1em' }} 
       />
+      <Button onClick={handleFighterSelected}>Submit</Button>
     </Modal>
     </>
   )
@@ -253,7 +274,9 @@ const FighterSelectModal = (props: FighterSelectModalProps) => {
 const Grid = () => {
   const [columnFighters, setColumnFighters] = useState<string[]>([]);
   const [rowFighters, setRowFighters] = useState<string[]>([]);
-  const [answers, setAnswers] = useState<string[][]>([[]]);
+  const [answers, setAnswers] = useState<string[][]>([["","",""],["","",""],["","",""]]);
+  const [activeCell, setActiveCell] = useState<number[]>([]);
+
   const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
@@ -263,13 +286,30 @@ const Grid = () => {
   },[])
 
   const handleCellClick = (rowNumber: number, colNumber: number) => {
+    setActiveCell([rowNumber, colNumber])
     open();
+  }
+
+  const handleFighterSelected = (fighter: string) => {
+    let newAnswers = answers;
+    newAnswers[activeCell[0]][activeCell[1]] = fighter;
+    setAnswers(newAnswers);
+
+    close();
+
+    console.log(answers);
   }
 
   return (
     <>
     <MantineProvider>
-      <FighterSelectModal opened={opened} onClose={close} />
+      <FighterSelectModal 
+        opened={opened} 
+        onClose={close} 
+        rowFighter={rowFighters[activeCell[0]]} 
+        colFighter={columnFighters[activeCell[1]]} 
+        fighterSelected={handleFighterSelected}
+      />
       <div className="play-area">
         <ColLabels label={columnFighters} />
         <div className="play-area-lower">
