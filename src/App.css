@@ -20,19 +20,31 @@
   text-align: center;
 }
 
-.grid {
-  display: flex;
-  flex-direction: column;
-  width: fit-content;
-  margin: 0 auto;
-}
-
 .row-label {
   height: 12em;
   width: 12em;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-wrap: wrap;
+}
+
+.fighter-display {
+  width: 90%;
+  height: 90%;
+  text-align: center;
+}
+
+.fighter-img {
+  width: 100%;
+  height: auto;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  width: fit-content;
+  margin: 0 auto;
 }
 
 .row {
@@ -44,4 +56,17 @@
   height: 12em;
   width: 12em;
   border-style: solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell-correct {
+  background-color: #68ec89;
+  opacity: 50%;
+}
+
+.cell-incorrect {
+  background-color: #ec6868;
+  opacity: 50%;
 }

@@ -38,6 +38,7 @@ interface RowProps {
   cols: string[];
   rowNumber: number;
   answers: string[];
+  answersCorrect: (boolean|null)[];
   onCellClick: (rowNumber: number, colNumber: number) => void;
 }
 
@@ -45,6 +46,7 @@ interface CellProps {
   rowNumber: number;
   colNumber: number;
   answer: string;
+  answerCorrect: boolean|null;
   onClick: (rowNumber: number, colNumber: number) => void;
 }
 
@@ -54,6 +56,10 @@ interface FighterSelectModalProps {
   rowFighter: string;
   colFighter: string;
   fighterSelected: (fighter: string) => void;
+}
+
+interface FighterDisplayProps {
+  fighterId: string;
 }
 
 //========================================================================================================
@@ -199,8 +205,13 @@ const buildGrid = ():[string[], string[]] => {
 
 const Cell = (props: CellProps) => {
   return (
-    <div className="cell" onClick={() => props.onClick(props.rowNumber, props.colNumber)}>
-      {props.answer}
+    <div 
+      className={`cell ${props.answerCorrect === true ? 'cell-correct' : props.answerCorrect === false ? 'cell-incorrect' : ''}`}
+      onClick={() => props.onClick(props.rowNumber, props.colNumber)}
+    >
+      {props.answer !== "" && (
+        <FighterDisplay fighterId={props.answer} />
+      )}
     </div>
   )
 }
@@ -209,7 +220,13 @@ const Row = (props: RowProps) => {
   return (
     <div className="row">
       {props.cols.map((item,index) => (
-        <Cell rowNumber={props.rowNumber} colNumber={index} onClick={props.onCellClick} answer={props.answers[index]}/>
+        <Cell 
+          rowNumber={props.rowNumber} 
+          colNumber={index} 
+          onClick={props.onCellClick} 
+          answer={props.answers[index]} 
+          answerCorrect={props.answersCorrect[index]}
+        />
       ))}
     </div>
   )
@@ -219,7 +236,9 @@ const ColLabels = (props: ColLabelProps) => {
   return (
     <div className="row">
       {props.label.map((fighter, index) => (
-        <div className="col-label">{fighter}</div>
+        <div className="col-label">
+          <FighterDisplay fighterId={fighter} />
+        </div>
       ))}
     </div>
   )
@@ -230,7 +249,9 @@ const RowLabels = (props: RowLabelsProps) => {
     <>
       <div style={{display: "flex", flexDirection: "column"}}>
         {props.label.map((fighter, index) => (
-          <div className="row-label">{fighter}</div>
+          <div className="row-label">
+            <FighterDisplay fighterId={fighter} />
+          </div>
         ))}
       </div>
     </>
@@ -274,6 +295,21 @@ const FighterSelectModal = (props: FighterSelectModalProps) => {
   )
 }
 
+const FighterDisplay = (props: FighterDisplayProps) => {
+  const imgURL = fighter_pics.find(f => f.Name === fightId[props.fighterId])?.PicURL
+
+  return (
+    <>
+    <div className="fighter-display">
+      <img 
+        className="fighter-img"
+        src={imgURL ? imgURL : 'https://dmxg5wxfqgb4u.cloudfront.net/styles/teaser/s3/image/fighter_images/ComingSoon/comingsoon_headshot_odopod.png?VersionId=6Lx8ImOpYf0wBYQKs_FGYIkuSIfTN0f0\u0026amp;itok=pYDOjN8k'} />
+      {fightId[props.fighterId]}
+    </div>
+    </>
+  )
+}
+
 const Grid = () => {
   const [columnFighters, setColumnFighters] = useState<string[]>([]);
   const [rowFighters, setRowFighters] = useState<string[]>([]);
@@ -309,9 +345,6 @@ const Grid = () => {
     newAnswersCorrect[row][col] = (didFight(rowFighters[row], fighter) && didFight(columnFighters[col], fighter));
     setAnswersCorrect(newAnswersCorrect);
 
-    console.log(answers);
-    console.log(answersCorrect);
-
     close();
   }
 
@@ -331,7 +364,14 @@ const Grid = () => {
           <RowLabels label={rowFighters} />
           <div className="grid">
             {rowFighters.map((fighter,index) => (
-                <Row cols={columnFighters} key={index} rowNumber={index} onCellClick={handleCellClick} answers={answers[index]}/>
+                <Row 
+                  cols={columnFighters} 
+                  key={index} 
+                  rowNumber={index} 
+                  onCellClick={handleCellClick} 
+                  answers={answers[index]} 
+                  answersCorrect={answersCorrect[index]}
+                />
             ))}
           </div>
           <div className="row-label" />
