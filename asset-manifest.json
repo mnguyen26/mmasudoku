@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/mmasudoku/static/css/main.ac62cade.css",
+    "main.js": "/mmasudoku/static/js/main.b34d9368.js",
+    "static/js/453.e5a667fe.chunk.js": "/mmasudoku/static/js/453.e5a667fe.chunk.js",
+    "index.html": "/mmasudoku/index.html",
+    "main.ac62cade.css.map": "/mmasudoku/static/css/main.ac62cade.css.map",
+    "main.b34d9368.js.map": "/mmasudoku/static/js/main.b34d9368.js.map",
+    "453.e5a667fe.chunk.js.map": "/mmasudoku/static/js/453.e5a667fe.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.ac62cade.css",
+    "static/js/main.b34d9368.js"
+  ]
+}
