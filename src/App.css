@@ -45,6 +45,7 @@
   flex-direction: column;
   width: fit-content;
   margin: 0 auto;
+  border-style: solid;
 }
 
 .row {
@@ -59,6 +60,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.cell-hover:hover {
+  background-color: rgb(231, 231, 231);
+}
+
+.select-fighter-text {
+  font-size: 0.8em;
+  color: lightgray;
 }
 
 .cell-correct {

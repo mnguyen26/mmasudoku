@@ -126,17 +126,6 @@ const getIntersection = (list1: string[], list2: string[]): string[] => {
   return intersection;
 }
 
-const hasCommonOpp = (fighter1: string, fighter2: string):boolean => {
-  const opponents1 = new Set(fights[fighter1]);
-  const opponents2 = new Set(fights[fighter2]);
-
-  for (const opponent in opponents1) {
-    if (opponents2.has(opponent)) { return true; }
-  }
-  
-  return false;
-}
-
 const didFight = (fighter1: string, fighter2: string) => {
   const opponents = new Set(fights[fighter1]);
 
@@ -203,14 +192,32 @@ const buildGrid = ():[string[], string[]] => {
 // SMALLER COMPONENTS
 //========================================================================================================
 
+const Title = () => {
+  return (
+    <div style={{ textAlign: 'center', fontSize: '2em', fontWeight: 'bold' }}>
+      MMA Sudoku
+    </div>
+  )
+}
+
 const Cell = (props: CellProps) => {
+  const handleOnClick = (row: number, col: number) => {
+    if (props.answer != "") {
+    }
+    else {
+      props.onClick(row, col);
+    }
+  }
+
   return (
     <div 
-      className={`cell ${props.answerCorrect === true ? 'cell-correct' : props.answerCorrect === false ? 'cell-incorrect' : ''}`}
-      onClick={() => props.onClick(props.rowNumber, props.colNumber)}
+      className={`cell ${props.answerCorrect === true ? 'cell-correct' : props.answerCorrect === false ? 'cell-incorrect' : ''} ${props.answer == "" ? 'cell-hover': ''}`}
+      onClick={() => handleOnClick(props.rowNumber, props.colNumber)}
     >
-      {props.answer !== "" && (
+      {props.answer !== "" ? (
         <FighterDisplay fighterId={props.answer} />
+      ) : (
+        <div className="select-fighter-text">Select a fighter</div>
       )}
     </div>
   )
@@ -272,7 +279,7 @@ const FighterSelectModal = (props: FighterSelectModalProps) => {
     props.fighterSelected(selectedFighter);
   }
 
-  const data = Object.values(fightId);
+  const data = Object.values(fightId).sort();
 
   return (
     <>
@@ -286,6 +293,7 @@ const FighterSelectModal = (props: FighterSelectModalProps) => {
         data={data}
         onChange={debounceOnChange}
         withScrollArea={false}
+        limit={20}
         styles={{ dropdown: { maxHeight: 200, overflowY: 'auto', cursor: 'pointer' } }}
         style={{ marginRight: '1em' }} 
       />
@@ -319,13 +327,17 @@ const Grid = () => {
 
   const [opened, { open, close }] = useDisclosure(false);
 
-  useEffect(() => {
+  const generateNewGrid = () => {
     const fighters = buildGrid();
     setColumnFighters(fighters[0]);
     setRowFighters(fighters[1]);
     setAnswers([["","",""],["","",""],["","",""]]);
     setAnswersCorrect([[null,null,null],[null,null,null],[null,null,null]]);
     setActiveCell([]);
+  }
+
+  useEffect(() => {
+    generateNewGrid();
   },[])
 
   const handleCellClick = (rowNumber: number, colNumber: number) => {
@@ -377,6 +389,14 @@ const Grid = () => {
           <div className="row-label" />
         </div>
       </div>
+      <div
+        style={{ display: 'flex', justifyContent: 'center', margin: "1em" }} 
+      >
+        <Button
+          onClick={generateNewGrid}>
+          New Grid
+        </ Button>
+      </div>
     </MantineProvider>
     </>
   )
@@ -389,6 +409,7 @@ const Grid = () => {
 function App() {
   return (
     <>
+      <Title />
       <div className="play-container">
         <Grid />
       </div>
