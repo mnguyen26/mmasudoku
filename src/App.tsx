@@ -311,7 +311,8 @@ const FighterDisplay = (props: FighterDisplayProps) => {
     <div className="fighter-display">
       <img 
         className="fighter-img"
-        src={imgURL ? imgURL : 'https://dmxg5wxfqgb4u.cloudfront.net/styles/teaser/s3/image/fighter_images/ComingSoon/comingsoon_headshot_odopod.png?VersionId=6Lx8ImOpYf0wBYQKs_FGYIkuSIfTN0f0\u0026amp;itok=pYDOjN8k'} />
+        src={imgURL ? imgURL : 'https://dmxg5wxfqgb4u.cloudfront.net/styles/teaser/s3/image/fighter_images/ComingSoon/comingsoon_headshot_odopod.png?VersionId=6Lx8ImOpYf0wBYQKs_FGYIkuSIfTN0f0\u0026amp;itok=pYDOjN8k'} 
+      />
       {fightId[props.fighterId]}
     </div>
     </>
@@ -362,7 +363,6 @@ const Grid = () => {
 
   return (
     <>
-    <MantineProvider>
       <FighterSelectModal 
         opened={opened} 
         onClose={close} 
@@ -371,6 +371,7 @@ const Grid = () => {
         fighterSelected={handleFighterSelected}
       />
       <div className="play-area">
+        <Title />
         <ColLabels label={columnFighters} />
         <div className="play-area-lower">
           <RowLabels label={rowFighters} />
@@ -388,16 +389,15 @@ const Grid = () => {
           </div>
           <div className="row-label" />
         </div>
+        <div
+          style={{ display: 'flex', justifyContent: 'center', margin: "1em" }} 
+        >
+          <Button
+            onClick={generateNewGrid}>
+            New Grid
+          </ Button>
+        </div>
       </div>
-      <div
-        style={{ display: 'flex', justifyContent: 'center', margin: "1em" }} 
-      >
-        <Button
-          onClick={generateNewGrid}>
-          New Grid
-        </ Button>
-      </div>
-    </MantineProvider>
     </>
   )
 }
@@ -409,10 +409,11 @@ const Grid = () => {
 function App() {
   return (
     <>
-      <Title />
+    <MantineProvider>
       <div className="play-container">
         <Grid />
       </div>
+    </MantineProvider>
     </>
   )
 }

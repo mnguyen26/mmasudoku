@@ -33,6 +33,7 @@
   width: 90%;
   height: 90%;
   text-align: center;
+  font-size: 1em;
 }
 
 .fighter-img {
@@ -79,4 +80,28 @@
 .cell-incorrect {
   background-color: #ec6868;
   opacity: 50%;
+}
+
+@media (max-width: 600px) {
+  .col-label {
+    width: 7em;
+  }
+
+  .row-label {
+    height: 7em;
+    width: 7em;
+  }
+
+  .cell {
+    height: 7em;
+    width: 7em;
+  }
+
+  .select-fighter-text {
+    font-size: 0.4em;
+  }
+
+  .fighter-display {
+    font-size: .4em;
+  }
 }
